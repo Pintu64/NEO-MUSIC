@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <script>
+      (function() {
+        var currentFetch = window.fetch;
+        function makeWritable(obj, prop) {
+          if (!obj) return;
+          try {
+            var desc = Object.getOwnPropertyDescriptor(obj, prop);
+            if (desc) {
+              if (desc.get && !desc.set) {
+                Object.defineProperty(obj, prop, {
+                  get: function() { return currentFetch; },
+                  set: function(val) { currentFetch = val; },
+                  configurable: true,
+                  enumerable: desc.enumerable !== false
+                });
+              } else if (!desc.writable && desc.configurable) {
+                Object.defineProperty(obj, prop, {
+                  writable: true,
+                  configurable: true,
+                  value: desc.value || currentFetch
+                });
+              }
+            } else {
+              try {
+                Object.defineProperty(obj, prop, {
+                  get: function() { return currentFetch; },
+                  set: function(val) { currentFetch = val; },
+                  configurable: true,
+                  enumerable: true
+                });
+              } catch (_) {}
+            }
+          } catch (_) {}
+        }
+
+        try {
+          if (typeof Window !== 'undefined' && Window.prototype) {
+            makeWritable(Window.prototype, 'fetch');
+          }
+          var curr = window;
+          while (curr) {
+            makeWritable(curr, 'fetch');
+            curr = Object.getPrototypeOf(curr);
+          }
+          if (typeof globalThis !== 'undefined') {
+            makeWritable(globalThis, 'fetch');
+          }
+        } catch (_) {}
+
+        var prevOnError = window.onerror;
+        window.onerror = function(msg, url, line, col, err) {
+          var str = '' + msg + ' ' + (url || '') + ' ' + (err ? err.stack || err.message : '');
+          if (
+            str.indexOf('fetch') !== -1 ||
+            str.indexOf('Cannot set property') !== -1 ||
+            str.indexOf('chrome-extension') !== -1
+          ) {
+            return true;
+          }
+          if (typeof prevOnError === 'function') {
+            return prevOnError.apply(this, arguments);
+          }
+          return false;
+        };
+
+        window.addEventListener('error', function(event) {
+          var msg = (event && event.message) || '';
+          var fn = (event && event.filename) || '';
+          if (
+            msg.indexOf('fetch') !== -1 ||
+            msg.indexOf('Cannot set property') !== -1 ||
+            fn.indexOf('chrome-extension') !== -1
+          ) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = event && event.reason;
+          var msg = (reason && (reason.message || reason.stack || '' + reason)) || '';
+          if (
+            msg.indexOf('fetch') !== -1 ||
+            msg.indexOf('Cannot set property') !== -1 ||
+            msg.indexOf('chrome-extension') !== -1
+          ) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        }, true);
+      })();
+    </script>
+    <title>NeoMusic — Smart Premium Music Player</title>
+    <meta name="description" content="Smart, privacy-first, ad-free offline music player with Liquid Glass interface, Dynamic Island capsule, 10-band equalizer, smart library curation, and intelligent listening tools." />
+    <meta property="og:title" content="NeoMusic — Smart Premium Music Player" />
+    <meta property="og:description" content="Smart, privacy-first, ad-free offline music player with Liquid Glass interface, Dynamic Island capsule, 10-band equalizer, smart library curation, and intelligent listening tools." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#0a0d14" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-[#080a0f] text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

@@ -1,0 +1,6 @@
+{
+  "name": "NeoMusic — Smart Premium Music Player",
+  "description": "Smart, privacy-first, ad-free offline music player with Liquid Glass interface, Dynamic Island capsule, 10-band equalizer, smart library curation, and intelligent listening tools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
